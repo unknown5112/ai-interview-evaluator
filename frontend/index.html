@@ -1,140 +1,138 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interview Evaluator</title>
+    <title>AI Mock Interview Evaluator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        defense: {
-                            900: '#0f172a',
-                            800: '#1e293b',
-                            accent: '#3b82f6'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <style>
+        body { background-color: #111827; color: #f3f4f6; }
+        .glass-panel { background: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(55, 65, 81, 0.5); }
+    </style>
 </head>
-<body class="bg-defense-900 text-slate-200 min-h-screen font-sans antialiased selection:bg-defense-accent selection:text-white">
-
-    <div class="max-w-4xl mx-auto px-4 py-12">
-        
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-white mb-3 tracking-tight"><i class="fa-solid fa-microphone-lines text-defense-accent mr-3"></i>AI Mock Interview & Evaluator</h1>
-            <p class="text-slate-400 text-lg">Practice your interview answers, speeches, and presentations with instant AI feedback.</p>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full glass-panel rounded-2xl p-8 shadow-2xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-400 mb-2">🎙️ AI Mock Interview Evaluator</h1>
+            <p class="text-gray-400">Get real-time feedback on your interview answers.</p>
         </div>
 
-        <!-- Main Card -->
-        <div class="bg-defense-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-            
-            <!-- Input Area -->
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Interview Question / Topic</label>
-                    <input type="text" id="topicInput" placeholder="e.g., Tell me about yourself, Future of AI, System Design..." 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-defense-accent focus:border-transparent transition">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Your Speech (Transcript)</label>
-                    <textarea id="transcriptInput" rows="6" placeholder="Type or paste your spoken answer here..." 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-defense-accent focus:border-transparent transition resize-none"></textarea>
-                </div>
-
-                <button id="evaluateBtn" onclick="submitEvaluation()" 
-                    class="w-full bg-defense-accent hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center justify-center gap-2">
-                    <span>Evaluate Performance</span>
-                    <i class="fa-solid fa-bolt"></i>
-                </button>
+        <div class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Interview Topic / Question</label>
+                <input type="text" id="topic" placeholder="e.g. Tell me about yourself..." 
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
             </div>
 
-            <!-- Loading Spinner -->
-            <div id="loadingIndicator" class="hidden mt-8 text-center text-slate-400 animate-pulse">
-                <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-2 text-defense-accent"></i>
-                <p>AI is analyzing your response...</p>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Your Answer (Transcript)</label>
+                <textarea id="transcript" rows="5" placeholder="Type or paste your spoken answer here..." 
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"></textarea>
             </div>
 
-            <!-- Result Area -->
-            <div id="resultArea" class="hidden mt-8 pt-8 border-t border-slate-700 opacity-0 transition-opacity duration-500">
-                <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-pie text-defense-accent"></i> Evaluation Results
-                </h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Score Box -->
-                    <div class="bg-slate-900 rounded-xl p-6 border border-slate-700 text-center flex flex-col justify-center">
-                        <p class="text-slate-400 text-sm uppercase tracking-wider mb-2">Overall Score</p>
-                        <div class="text-5xl font-bold text-white"><span id="scoreValue" class="text-defense-accent">--</span><span class="text-2xl text-slate-500">/10</span></div>
-                    </div>
-                    
-                    <!-- Feedback Box -->
-                    <div class="bg-slate-900 rounded-xl p-6 border border-slate-700 md:col-span-2">
-                        <p class="text-slate-400 text-sm uppercase tracking-wider mb-2">AI Feedback</p>
-                        <p id="feedbackText" class="text-slate-300 leading-relaxed">Waiting for evaluation...</p>
-                    </div>
+            <button onclick="evaluateAnswer()" id="evalBtn" 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+                <span id="btnText">Evaluate My Answer</span>
+                <svg id="loadingSpinner" class="animate-spin ml-2 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultSection" class="mt-8 hidden border-t border-gray-700 pt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-white">Evaluation Result</h2>
+                <div class="bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
+                    <span class="text-gray-400 text-sm">Score:</span> 
+                    <span id="scoreValue" class="text-2xl font-bold text-green-400 ml-2">-</span><span class="text-gray-400">/10</span>
                 </div>
             </div>
-
+            <div class="bg-gray-800 rounded-lg p-5 border border-gray-700">
+                <h3 class="text-sm font-medium text-gray-400 mb-2">AI Feedback:</h3>
+                <p id="feedbackText" class="text-gray-200 leading-relaxed"></p>
+            </div>
+        </div>
+        
+        <!-- Error Section -->
+        <div id="errorSection" class="mt-6 hidden bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200 text-sm">
         </div>
     </div>
 
     <script>
-        // 🔥 Ninja Ping: Wakes up the server silently when the page loads
-        window.onload = () => {
-            fetch("https://unknown5112--ai-interview-evaluator-fastapi-app.modal.run/docs")
-                .catch(() => console.log("Server warming up in background..."));
-        };
+        // 🔥 ACTUAL LIVE MODAL URL INJECTED HERE
+        const BACKEND_URL = "https://unknown5112--ai-interview-evaluator-fastapi-app.modal.run/api/evaluate";
 
-        async function submitEvaluation() {
-            const topic = document.getElementById('topicInput').value;
-            const transcript = document.getElementById('transcriptInput').value;
+        // 🥷 Ninja Ping - Keep the server warm in the background
+        async function ninjaPing() {
+            try {
+                fetch(BACKEND_URL, { method: "OPTIONS" }).catch(() => console.log("Ping ignored."));
+            } catch(e) {}
+        }
+        
+        // Fire ping as soon as page loads
+        window.onload = ninjaPing;
+
+        async function evaluateAnswer() {
+            const topic = document.getElementById("topic").value.trim();
+            const transcript = document.getElementById("transcript").value.trim();
             
-            if(!topic || !transcript) {
-                alert("Please provide both a topic/question and your transcript.");
+            if (!topic || !transcript) {
+                showError("Please enter both the topic and your answer.");
                 return;
             }
 
-            document.getElementById('evaluateBtn').disabled = true;
-            document.getElementById('evaluateBtn').classList.add('opacity-50', 'cursor-not-allowed');
-            document.getElementById('resultArea').classList.add('hidden', 'opacity-0');
-            document.getElementById('loadingIndicator').classList.remove('hidden');
+            const btn = document.getElementById("evalBtn");
+            const btnText = document.getElementById("btnText");
+            const spinner = document.getElementById("loadingSpinner");
+            const resultSection = document.getElementById("resultSection");
+            const errorSection = document.getElementById("errorSection");
 
-            const modalApiUrl = "https://unknown5112--ai-interview-evaluator-fastapi-app.modal.run/api/evaluate";
+            // Loading state
+            btn.disabled = true;
+            btn.classList.add("opacity-75", "cursor-not-allowed");
+            btnText.innerText = "Evaluating with AI...";
+            spinner.classList.remove("hidden");
+            resultSection.classList.add("hidden");
+            errorSection.classList.add("hidden");
 
             try {
-                const response = await fetch(modalApiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic: topic, transcript: transcript })
+                const response = await fetch(BACKEND_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ topic, transcript })
                 });
 
-                if(!response.ok) throw new Error("Server error occurred!");
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.status}`);
+                }
 
                 const data = await response.json();
                 
-                document.getElementById('scoreValue').innerText = data.evaluation.score;
-                document.getElementById('feedbackText').innerText = data.evaluation.feedback;
-                
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('resultArea').classList.remove('hidden');
-                setTimeout(() => document.getElementById('resultArea').classList.remove('opacity-0'), 50);
+                if (data.status === "success") {
+                    document.getElementById("scoreValue").innerText = data.evaluation.score;
+                    document.getElementById("feedbackText").innerText = data.evaluation.feedback;
+                    resultSection.classList.remove("hidden");
+                } else {
+                    throw new Error("Invalid response from AI");
+                }
 
             } catch (error) {
-                alert("Error: " + error.message);
-                document.getElementById('loadingIndicator').classList.add('hidden');
+                showError(error.message || "Failed to connect to backend. Please try again.");
             } finally {
-                document.getElementById('evaluateBtn').disabled = false;
-                document.getElementById('evaluateBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+                // Reset UI
+                btn.disabled = false;
+                btn.classList.remove("opacity-75", "cursor-not-allowed");
+                btnText.innerText = "Evaluate My Answer";
+                spinner.classList.add("hidden");
             }
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById("errorSection");
+            errorSection.innerText = message;
+            errorSection.classList.remove("hidden");
         }
     </script>
 </body>
