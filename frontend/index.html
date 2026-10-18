@@ -5,167 +5,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Interview Evaluator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Asli Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 transition-colors duration-300 p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100 dark:border-gray-700">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 transition-colors duration-300 p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100 dark:border-gray-700 relative">
         
-        <!-- Header, Login Toggle & Dark Mode -->
+        <!-- Header -->
         <div class="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">AI Interview Coach 🚀</h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400" id="modeStatus">Currently using: <span class="font-bold text-green-500">Guest Mode</span></p>
             </div>
-            <div class="flex flex-col sm:flex-row items-end sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                <button id="showLoginBtn" class="text-sm font-bold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-4 py-2 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors">
-                    👤 Log In
-                </button>
-                <button id="logoutBtn" class="hidden text-sm font-bold bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
-                    🚪 Log Out
-                </button>
-                <button id="themeToggle" class="text-sm p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    🌙
-                </button>
+            <div class="flex space-x-3">
+                <button id="showLoginBtn" class="text-sm font-bold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-4 py-2 rounded-lg hover:bg-indigo-200 transition-colors">👤 Log In</button>
+                <button id="logoutBtn" class="hidden text-sm font-bold bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors">🚪 Log Out</button>
+                <button id="themeToggle" class="text-sm p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors">🌙 Dark</button>
             </div>
         </div>
 
-        <!-- Real Login / Auth UI -->
-        <div id="loginSection" class="hidden mb-8 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 shadow-inner">
+        <!-- 1. LOGIN / SIGNUP SECTION -->
+        <div id="loginSection" class="hidden mb-8 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
             <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Account Access</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Create a new account or log in to your existing one.</p>
+            
+            <!-- Google Login Button -->
+            <button id="googleLoginBtn" class="w-full flex items-center justify-center space-x-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 rounded-lg transition duration-300 mb-4 shadow-sm">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                <span class="px-3 text-sm text-gray-500 font-medium">OR</span>
+                <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
             
             <div class="space-y-3">
-                <input type="email" id="emailInput" placeholder="Enter your Email" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <input type="password" id="passwordInput" placeholder="Enter your Password" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <input type="email" id="emailInput" placeholder="Enter your Email" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <input type="password" id="passwordInput" placeholder="Enter your Password" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                 
-                <div class="flex space-x-3 pt-2">
-                    <button id="loginSubmitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-300">
-                        Log In
-                    </button>
-                    <button id="signupSubmitBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-300">
-                        Sign Up
-                    </button>
+                <div class="flex justify-end">
+                    <button id="showForgotPwdBtn" class="text-sm text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Forgot Password?</button>
                 </div>
-                <button id="continueGuestBtn" class="w-full mt-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-3 rounded-lg transition duration-300">
-                    Cancel & Return to Guest Mode
-                </button>
+
+                <div class="flex space-x-3 pt-2">
+                    <button id="loginSubmitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-300">Log In</button>
+                    <button id="signupSubmitBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-300">Sign Up</button>
+                </div>
+                <button id="continueGuestBtn" class="w-full mt-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 rounded-lg transition duration-300">Cancel & Return to Guest Mode</button>
             </div>
             <div id="authError" class="hidden mt-3 text-red-600 text-sm font-semibold"></div>
+            <div id="authSuccess" class="hidden mt-3 text-green-600 text-sm font-semibold"></div>
+        </div>
+
+        <!-- 2. FORGOT PASSWORD SECTION -->
+        <div id="forgotPwdSection" class="hidden mb-8 p-6 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Reset Password</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enter your email and we'll send you a secure reset link.</p>
+            <div class="space-y-3">
+                <input type="email" id="resetEmailInput" placeholder="Your registered email address" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <button id="sendResetLinkBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition duration-300">Send Reset Link</button>
+                <button id="backToLoginBtn" class="w-full mt-2 bg-transparent border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300">Back to Login</button>
+            </div>
+            <div id="resetMsg" class="hidden mt-3 text-sm font-semibold"></div>
+        </div>
+
+        <!-- 3. UPDATE PASSWORD SECTION (Appears after clicking email link) -->
+        <div id="updatePwdSection" class="hidden mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Set New Password</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Please enter your new password below.</p>
+            <div class="space-y-3">
+                <input type="password" id="newPasswordInput" placeholder="New Password (min 6 chars)" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <button id="saveNewPwdBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition duration-300">Save & Login</button>
+            </div>
+            <div id="updatePwdMsg" class="hidden mt-3 text-sm font-semibold"></div>
         </div>
         
-        <!-- Main Application -->
+        <!-- Main Application (Evaluator) -->
         <div id="mainApp" class="space-y-5">
             <div>
-                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Interview Question / Topic:</label>
-                <input type="text" id="topic" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors" placeholder="e.g., Tell me about your technical projects.">
+                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Interview Topic:</label>
+                <input type="text" id="topic" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="e.g., Technical projects">
             </div>
-            
             <div>
-                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Your Answer (Transcript):</label>
-                <textarea id="transcript" rows="5" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors" placeholder="Type your detailed answer here..."></textarea>
+                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Your Answer:</label>
+                <textarea id="transcript" rows="5" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Type your detailed answer here..."></textarea>
             </div>
-
-            <button id="evaluateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-4 rounded-xl transition duration-300 shadow-md">
-                Evaluate My Answer
-            </button>
+            <button id="evaluateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-4 rounded-xl transition duration-300 shadow-md">Evaluate My Answer</button>
         </div>
 
-        <div id="loading" class="hidden mt-6 text-center p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800">
-            <p class="text-indigo-600 dark:text-indigo-400 font-bold animate-pulse">⏳ AI is analyzing your response... Please wait.</p>
-        </div>
-
-        <!-- Results Section -->
-        <div id="resultBox" class="hidden mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 shadow-sm">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">📊 Evaluation Result</h2>
+        <div id="loading" class="hidden mt-6 text-center p-4"><p class="text-indigo-600 dark:text-indigo-400 font-bold animate-pulse">⏳ AI is analyzing...</p></div>
+        <div id="resultBox" class="hidden mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">📊 Evaluation Result</h2>
             <div class="flex items-center space-x-4 mb-4">
                 <div class="w-20 h-20 rounded-full bg-green-500 text-white flex items-center justify-center text-3xl font-extrabold shadow-inner" id="scoreDisplay">0</div>
                 <span class="text-xl font-bold text-gray-700 dark:text-gray-300">Out of 10</span>
             </div>
             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                 <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-1">Feedback:</h3>
-                <p id="feedbackDisplay" class="text-gray-700 dark:text-gray-300 leading-relaxed"></p>
+                <p id="feedbackDisplay" class="text-gray-700 dark:text-gray-300"></p>
             </div>
         </div>
-        
-        <div id="errorBox" class="hidden mt-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 font-semibold"></div>
     </div>
 
     <script>
         // ==========================================
-        // 🛑 YAHAN APNI SUPABASE DETAILS DAAL 🛑
+        // 🛑 APNI SUPABASE DETAILS YAHAN DAAL (Qoutes ke andar) 🛑
         // ==========================================
         const supabaseUrl = 'https://zkzfelzbcskmzgyfynjz.supabase.co'; 
         const supabaseKey = 'sb_publishable_TEvCsRbd9Zid9wYsbJDRSA_0Bw9qdhd';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- UI & Theme Logic ---
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        themeToggle.addEventListener('click', () => {
-            htmlElement.classList.toggle('dark');
-            themeToggle.innerHTML = htmlElement.classList.contains('dark') ? '☀️' : '🌙';
+        // --- Theme Toggle ---
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
         });
 
-        const showLoginBtn = document.getElementById('showLoginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const loginSection = document.getElementById('loginSection');
+        // --- UI Elements ---
+        const loginSec = document.getElementById('loginSection');
         const mainApp = document.getElementById('mainApp');
-        const continueGuestBtn = document.getElementById('continueGuestBtn');
+        const forgotPwdSec = document.getElementById('forgotPwdSection');
+        const updatePwdSec = document.getElementById('updatePwdSection');
         const authError = document.getElementById('authError');
-        const modeStatus = document.getElementById('modeStatus');
+        const authSuccess = document.getElementById('authSuccess');
 
-        showLoginBtn.addEventListener('click', () => {
-            loginSection.classList.remove('hidden');
-            mainApp.classList.add('hidden');
-        });
+        // Navigation toggles
+        document.getElementById('showLoginBtn').addEventListener('click', () => { loginSec.classList.remove('hidden'); mainApp.classList.add('hidden'); forgotPwdSec.classList.add('hidden'); });
+        document.getElementById('continueGuestBtn').addEventListener('click', () => { loginSec.classList.add('hidden'); mainApp.classList.remove('hidden'); });
+        document.getElementById('showForgotPwdBtn').addEventListener('click', () => { loginSec.classList.add('hidden'); forgotPwdSec.classList.remove('hidden'); });
+        document.getElementById('backToLoginBtn').addEventListener('click', () => { forgotPwdSec.classList.add('hidden'); loginSec.classList.remove('hidden'); });
 
-        continueGuestBtn.addEventListener('click', () => {
-            loginSection.classList.add('hidden');
-            mainApp.classList.remove('hidden');
-        });
-
-        // --- REAL AUTHENTICATION LOGIC ---
-        async function checkUser() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                modeStatus.innerHTML = `Logged in as: <span class="font-bold text-indigo-500">${user.email}</span>`;
-                showLoginBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                loginSection.classList.add('hidden');
+        // --- AUTHENTICATION STATE CHANGE LISTENER ---
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                // Link pe click karne ke baad naya password set karne wala page khulega
+                mainApp.classList.add('hidden');
+                loginSec.classList.add('hidden');
+                forgotPwdSec.classList.add('hidden');
+                updatePwdSec.classList.remove('hidden');
+            } else if (session) {
+                // User logged in
+                document.getElementById('modeStatus').innerHTML = `Logged in as: <span class="text-indigo-500 font-bold">${session.user.email}</span>`;
+                document.getElementById('showLoginBtn').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                loginSec.classList.add('hidden');
+                updatePwdSec.classList.add('hidden');
                 mainApp.classList.remove('hidden');
             } else {
-                modeStatus.innerHTML = `Currently using: <span class="font-bold text-green-500">Guest Mode</span>`;
-                showLoginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
+                // User logged out
+                document.getElementById('modeStatus').innerHTML = `Currently using: <span class="text-green-500 font-bold">Guest Mode</span>`;
+                document.getElementById('showLoginBtn').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
             }
-        }
+        });
 
-        // SIGN UP
+        // --- GOOGLE LOGIN ---
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+            if (error) { authError.innerText = "❌ Google Login Error: " + error.message; authError.classList.remove('hidden'); }
+        });
+
+        // --- EMAIL SIGN UP ---
         document.getElementById('signupSubmitBtn').addEventListener('click', async () => {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
-            authError.classList.add('hidden');
+            authError.classList.add('hidden'); authSuccess.classList.add('hidden');
 
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) {
-                authError.innerText = "❌ " + error.message;
-                authError.classList.remove('hidden');
+                authError.innerText = "❌ " + error.message; authError.classList.remove('hidden');
             } else {
-                alert("Account created successfully! You are now logged in.");
-                checkUser();
+                authSuccess.innerText = "✅ Verification link sent! Please check your email inbox to verify your account.";
+                authSuccess.classList.remove('hidden');
             }
         });
 
-        // LOG IN
+        // --- EMAIL LOG IN ---
         document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
@@ -173,62 +196,75 @@
 
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
-                authError.innerText = "❌ " + error.message;
+                authError.innerText = "❌ " + error.message + " (Check if you verified your email first!)";
                 authError.classList.remove('hidden');
-            } else {
-                checkUser();
             }
         });
 
-        // LOG OUT
-        logoutBtn.addEventListener('click', async () => {
+        // --- LOG OUT ---
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
             await supabaseClient.auth.signOut();
-            checkUser();
         });
 
-        // Check login status on page load
-        checkUser();
+        // --- FORGOT PASSWORD (Send Link) ---
+        document.getElementById('sendResetLinkBtn').addEventListener('click', async () => {
+            const email = document.getElementById('resetEmailInput').value;
+            const msgBox = document.getElementById('resetMsg');
+            msgBox.classList.remove('hidden'); msgBox.innerText = "Sending link..."; msgBox.className = "mt-3 text-sm font-semibold text-gray-500";
 
-        // --- Evaluation API Logic ---
+            const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin
+            });
+
+            if (error) {
+                msgBox.innerText = "❌ " + error.message; msgBox.className = "mt-3 text-sm font-semibold text-red-600";
+            } else {
+                msgBox.innerText = "✅ Password reset link sent! Check your inbox."; msgBox.className = "mt-3 text-sm font-semibold text-green-600";
+            }
+        });
+
+        // --- SET NEW PASSWORD ---
+        document.getElementById('saveNewPwdBtn').addEventListener('click', async () => {
+            const newPassword = document.getElementById('newPasswordInput').value;
+            const msgBox = document.getElementById('updatePwdMsg');
+            msgBox.classList.remove('hidden');
+
+            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) {
+                msgBox.innerText = "❌ " + error.message; msgBox.className = "mt-3 text-sm font-semibold text-red-600";
+            } else {
+                msgBox.innerText = "✅ Password updated successfully!"; msgBox.className = "mt-3 text-sm font-semibold text-green-600";
+                setTimeout(() => { updatePwdSec.classList.add('hidden'); mainApp.classList.remove('hidden'); }, 2000);
+            }
+        });
+
+        // --- AI EVALUATION API ---
         document.getElementById("evaluateBtn").addEventListener("click", async () => {
             const topic = document.getElementById("topic").value.trim();
             const transcript = document.getElementById("transcript").value.trim();
-            
-            if (!topic || !transcript) {
-                alert("Please provide both an interview topic and your answer transcript.");
-                return;
-            }
+            if (!topic || !transcript) { alert("Please provide both fields."); return; }
 
             const btn = document.getElementById("evaluateBtn");
-            btn.disabled = true;
-            btn.innerText = "Evaluating...";
-            btn.classList.add("opacity-60");
-            
+            btn.disabled = true; btn.innerText = "Evaluating..."; btn.classList.add("opacity-60");
             document.getElementById("loading").classList.remove("hidden");
             document.getElementById("resultBox").classList.add("hidden");
 
             try {
-                // Modal API Endpoint
-                const apiUrl = "https://unknown5112--interview-coach-v2-fastapi-app.us-east.modal.run/api/evaluate";
-                const response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                // Tere Modal Backend ka Link
+                const response = await fetch("https://unknown5112--interview-coach-v2-fastapi-app.us-east.modal.run/api/evaluate", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ topic, transcript })
                 });
-
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || "Server error occurred.");
+                if (!response.ok) throw new Error(data.detail);
 
                 document.getElementById("scoreDisplay").innerText = data.evaluation.score;
                 document.getElementById("feedbackDisplay").innerText = data.evaluation.feedback;
                 document.getElementById("resultBox").classList.remove("hidden");
-            } catch (error) {
-                alert("Error: " + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Evaluate My Answer";
-                btn.classList.remove("opacity-60");
-                document.getElementById("loading").classList.add("hidden");
+            } catch (error) { alert("Error: " + error.message); } 
+            finally { 
+                btn.disabled = false; btn.innerText = "Evaluate My Answer"; btn.classList.remove("opacity-60");
+                document.getElementById("loading").classList.add("hidden"); 
             }
         });
     </script>
