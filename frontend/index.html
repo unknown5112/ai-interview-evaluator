@@ -3,137 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Mock Interview Evaluator</title>
+    <title>AI Interview Evaluator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #111827; color: #f3f4f6; }
-        .glass-panel { background: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(55, 65, 81, 0.5); }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-2xl w-full glass-panel rounded-2xl p-8 shadow-2xl">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-blue-400 mb-2">🎙️ AI Mock Interview Evaluator</h1>
-            <p class="text-gray-400">Get real-time feedback on your interview answers.</p>
+            <h1 class="text-3xl font-extrabold text-indigo-600 mb-2">AI Interview Coach 🚀</h1>
+            <p class="text-gray-500">Practice your interview answers and get instant AI feedback.</p>
         </div>
-
-        <div class="space-y-6">
+        
+        <div class="space-y-5">
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Interview Topic / Question</label>
-                <input type="text" id="topic" placeholder="e.g. Tell me about yourself..." 
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                <label class="block text-gray-700 font-bold mb-2">Interview Question / Topic:</label>
+                <input type="text" id="topic" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" placeholder="e.g., Tell me about yourself">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-bold mb-2">Your Answer (Transcript):</label>
+                <textarea id="transcript" rows="5" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" placeholder="Type or speak your answer here..."></textarea>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Your Answer (Transcript)</label>
-                <textarea id="transcript" rows="5" placeholder="Type or paste your spoken answer here..." 
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"></textarea>
-            </div>
-
-            <button onclick="evaluateAnswer()" id="evalBtn" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
-                <span id="btnText">Evaluate My Answer</span>
-                <svg id="loadingSpinner" class="animate-spin ml-2 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+            <button id="evaluateBtn" class="w-full bg-indigo-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-md">
+                Evaluate My Answer
             </button>
         </div>
 
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden mt-6 text-center p-4 bg-indigo-50 rounded-xl">
+            <p class="text-indigo-600 font-bold animate-pulse">⏳ AI is analyzing your response... Please wait.</p>
+        </div>
+
         <!-- Results Section -->
-        <div id="resultSection" class="mt-8 hidden border-t border-gray-700 pt-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-white">Evaluation Result</h2>
-                <div class="bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
-                    <span class="text-gray-400 text-sm">Score:</span> 
-                    <span id="scoreValue" class="text-2xl font-bold text-green-400 ml-2">-</span><span class="text-gray-400">/10</span>
+        <div id="resultBox" class="hidden mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                📊 Evaluation Result
+            </h2>
+            <div class="flex items-center space-x-4 mb-4">
+                <div class="w-20 h-20 rounded-full bg-green-500 text-white flex items-center justify-center text-3xl font-extrabold shadow-inner" id="scoreDisplay">
+                    0
                 </div>
+                <span class="text-xl font-bold text-gray-700">Out of 10</span>
             </div>
-            <div class="bg-gray-800 rounded-lg p-5 border border-gray-700">
-                <h3 class="text-sm font-medium text-gray-400 mb-2">AI Feedback:</h3>
-                <p id="feedbackText" class="text-gray-200 leading-relaxed"></p>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="font-bold text-gray-800 mb-1">Feedback:</h3>
+                <p id="feedbackDisplay" class="text-gray-700 leading-relaxed"></p>
             </div>
         </div>
         
         <!-- Error Section -->
-        <div id="errorSection" class="mt-6 hidden bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200 text-sm">
+        <div id="errorBox" class="hidden mt-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 font-semibold">
         </div>
     </div>
 
     <script>
-        // 🔥 ACTUAL LIVE MODAL URL INJECTED HERE
-        const BACKEND_URL = "https://unknown5112--ai-interview-evaluator-fastapi-app.modal.run/api/evaluate";
-
-        // 🥷 Ninja Ping - Keep the server warm in the background
-        async function ninjaPing() {
-            try {
-                fetch(BACKEND_URL, { method: "OPTIONS" }).catch(() => console.log("Ping ignored."));
-            } catch(e) {}
-        }
-        
-        // Fire ping as soon as page loads
-        window.onload = ninjaPing;
-
-        async function evaluateAnswer() {
+        document.getElementById("evaluateBtn").addEventListener("click", async () => {
             const topic = document.getElementById("topic").value.trim();
             const transcript = document.getElementById("transcript").value.trim();
             
             if (!topic || !transcript) {
-                showError("Please enter both the topic and your answer.");
+                alert("Bhai, Topic aur Answer dono field bharna zaroori hai!");
                 return;
             }
 
-            const btn = document.getElementById("evalBtn");
-            const btnText = document.getElementById("btnText");
-            const spinner = document.getElementById("loadingSpinner");
-            const resultSection = document.getElementById("resultSection");
-            const errorSection = document.getElementById("errorSection");
-
-            // Loading state
+            // UI Update: Show loading state
+            const btn = document.getElementById("evaluateBtn");
             btn.disabled = true;
-            btn.classList.add("opacity-75", "cursor-not-allowed");
-            btnText.innerText = "Evaluating with AI...";
-            spinner.classList.remove("hidden");
-            resultSection.classList.add("hidden");
-            errorSection.classList.add("hidden");
+            btn.innerText = "Evaluating...";
+            btn.classList.add("opacity-60", "cursor-not-allowed");
+            
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("resultBox").classList.add("hidden");
+            document.getElementById("errorBox").classList.add("hidden");
 
             try {
-                const response = await fetch(BACKEND_URL, {
+                // EXACT NEW API URL
+                const apiUrl = "https://unknown5112--interview-coach-v2-fastapi-app.us-east.modal.run/api/evaluate";
+                
+                const response = await fetch(apiUrl, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify({ topic, transcript })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Server Error: ${response.status}`);
-                }
-
                 const data = await response.json();
-                
-                if (data.status === "success") {
-                    document.getElementById("scoreValue").innerText = data.evaluation.score;
-                    document.getElementById("feedbackText").innerText = data.evaluation.feedback;
-                    resultSection.classList.remove("hidden");
-                } else {
-                    throw new Error("Invalid response from AI");
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Server error occurred.");
                 }
 
+                // Show Results
+                document.getElementById("scoreDisplay").innerText = data.evaluation.score;
+                document.getElementById("feedbackDisplay").innerText = data.evaluation.feedback;
+                document.getElementById("resultBox").classList.remove("hidden");
             } catch (error) {
-                showError(error.message || "Failed to connect to backend. Please try again.");
+                document.getElementById("errorBox").innerText = "❌ Error: " + error.message;
+                document.getElementById("errorBox").classList.remove("hidden");
             } finally {
                 // Reset UI
                 btn.disabled = false;
-                btn.classList.remove("opacity-75", "cursor-not-allowed");
-                btnText.innerText = "Evaluate My Answer";
-                spinner.classList.add("hidden");
+                btn.innerText = "Evaluate My Answer";
+                btn.classList.remove("opacity-60", "cursor-not-allowed");
+                document.getElementById("loading").classList.add("hidden");
             }
-        }
-
-        function showError(message) {
-            const errorSection = document.getElementById("errorSection");
-            errorSection.innerText = message;
-            errorSection.classList.remove("hidden");
-        }
+        });
     </script>
 </body>
 </html>

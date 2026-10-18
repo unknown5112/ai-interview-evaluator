@@ -11,13 +11,15 @@ image = modal.Image.debian_slim().pip_install(
     "fastapi", "supabase", "requests", "pydantic"
 )
 
-app = modal.App("ai-interview-evaluator")
+# Naya app name taaki purana cache bilkul use na ho
+app = modal.App("interview-coach-v2")
 
-web_app = FastAPI(title="AI Interview Evaluator API")
+web_app = FastAPI(title="AI Interview Evaluator V2")
+
 web_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -26,12 +28,21 @@ class InterviewRequest(BaseModel):
     topic: str
     transcript: str
 
-def evaluate_with_gemini(topic: str, transcript: str):
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise Exception("Gemini API Key missing in environment")
+@web_app.get("/")
+def health_check():
+    groq_key = os.environ.get("GROQ_API_KEY", "")
+    return {
+        "status": "online",
+        "groq_key_loaded": bool(groq_key and groq_key.startswith("gsk_")),
+        "key_prefix": groq_key[:7] + "..." if groq_key else "MISSING"
+    }
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}"
+def evaluate_with_groq(topic: str, transcript: str):
+    api_key = os.environ.get("GROQ_API_KEY", "").strip()
+    if not api_key:
+        raise Exception("GROQ_API_KEY is missing in Modal Secret 'coach-secrets'")
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
     prompt = f"""
     You are an expert HR Interviewer and Communication Coach.
@@ -42,53 +53,51 @@ def evaluate_with_gemini(topic: str, transcript: str):
 
     Provide a valid JSON response with this exact structure:
     {{
-        "score": <An integer out of 10 based on clarity, structure, relevance, and confidence>,
+        "score": 8,
         "feedback": "A crisp 3-4 sentence constructive feedback highlighting strengths and areas for improvement."
     }}
     """
 
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.4}
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
     }
 
-    print("--> Ping sent to Google Gemini...")
-    # 🔥 FIX: Added a 20-second strict timeout to prevent indefinite hanging
-    resp = requests.post(url, json=payload, timeout=20) 
-    print(f"--> Google responded with status code: {resp.status_code}")
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [
+            {"role": "system", "content": "You always respond in valid JSON format."},
+            {"role": "user", "content": prompt}
+        ],
+        "response_format": {"type": "json_object"}
+    }
 
+    resp = requests.post(url, json=payload, headers=headers, timeout=20)
     if resp.status_code != 200:
-        raise Exception(f"Gemini API Error: {resp.text}")
+        raise Exception(f"Groq API Error: {resp.text}")
 
     data = resp.json()
-    answer = data['candidates'][0]['content']['parts'][0]['text']
-    answer = answer.replace("```json", "").replace("```", "").strip()
-
-    return json.loads(answer)
+    return json.loads(data["choices"][0]["message"]["content"])
 
 @web_app.post("/api/evaluate")
 def evaluate_response(req: InterviewRequest):
-    print(f"\n🚀 New Request! Topic: {req.topic}")
     try:
-        print("⏳ Step 1: Starting AI Evaluation...")
-        evaluation = evaluate_with_gemini(req.topic, req.transcript)
-        print("✅ Step 1 Success! AI Score:", evaluation.get("score"))
-
-        print("⏳ Step 2: Connecting to Supabase Database...")
-        supabase_url = os.environ.get("SUPABASE_URL")
-        supabase_key = os.environ.get("SUPABASE_KEY")
-
-        if supabase_url and supabase_key:
-            supabase: Client = create_client(supabase_url, supabase_key)
-            supabase.table("mock_interviews").insert({
-                "topic": req.topic,
-                "transcript": req.transcript,
-                "score": evaluation["score"],
-                "feedback": evaluation["feedback"]
-            }).execute()
-            print("✅ Step 2 Success! Data saved to Supabase.")
-        else:
-            print("⚠️ Supabase keys not found in environment. Skipping database step.")
+        evaluation = evaluate_with_groq(req.topic, req.transcript)
+        
+        # Database logic inside nested try-except (failsafe)
+        try:
+            supabase_url = os.environ.get("SUPABASE_URL", "").strip()
+            supabase_key = os.environ.get("SUPABASE_KEY", "").strip()
+            if supabase_url and supabase_key:
+                supabase: Client = create_client(supabase_url, supabase_key)
+                supabase.table("mock_interviews").insert({
+                    "topic": req.topic,
+                    "transcript": req.transcript,
+                    "score": evaluation.get("score", 0),
+                    "feedback": evaluation.get("feedback", "")
+                }).execute()
+        except Exception as db_err:
+            print(f"Supabase Failsafe: {str(db_err)}")
 
         return {
             "status": "success",
@@ -96,10 +105,9 @@ def evaluate_response(req: InterviewRequest):
             "evaluation": evaluation
         }
     except Exception as e:
-        print(f"❌ CRITICAL ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.function(image=image, secrets=[modal.Secret.from_dotenv()], min_containers=1)
+@app.function(image=image, secrets=[modal.Secret.from_name("coach-secrets")], min_containers=1)
 @modal.asgi_app()
 def fastapi_app():
     return web_app
