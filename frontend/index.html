@@ -1,75 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Interview Evaluator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-indigo-600 mb-2">AI Interview Coach 🚀</h1>
-            <p class="text-gray-500">Practice your interview answers and get instant AI feedback.</p>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 transition-colors duration-300 p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100 dark:border-gray-700">
+        
+        <!-- Header with Dark Mode Toggle -->
+        <div class="flex justify-between items-start mb-8">
+            <div class="flex-1 text-center">
+                <h1 class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-2">AI Interview Coach 🚀</h1>
+                <p class="text-gray-500 dark:text-gray-400">Practice your interview answers and get instant AI feedback.</p>
+            </div>
+            <button id="themeToggle" class="text-sm p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                🌙 Dark
+            </button>
         </div>
         
         <div class="space-y-5">
             <div>
-                <label class="block text-gray-700 font-bold mb-2">Interview Question / Topic:</label>
-                <input type="text" id="topic" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" placeholder="e.g., Tell me about yourself">
+                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Interview Question / Topic:</label>
+                <input type="text" id="topic" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors" placeholder="e.g., Tell me about yourself">
             </div>
             
             <div>
-                <label class="block text-gray-700 font-bold mb-2">Your Answer (Transcript):</label>
-                <textarea id="transcript" rows="5" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" placeholder="Type or speak your answer here..."></textarea>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 font-bold">Your Answer (Transcript):</label>
+                    <button id="micBtn" class="flex items-center space-x-1 text-sm bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors">
+                        <span>🎙️</span> <span id="micText">Start Speaking</span>
+                    </button>
+                </div>
+                <textarea id="transcript" rows="5" class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-colors" placeholder="Type or speak your answer here..."></textarea>
             </div>
 
-            <button id="evaluateBtn" class="w-full bg-indigo-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-md">
+            <button id="evaluateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-4 rounded-xl transition duration-300 shadow-md">
                 Evaluate My Answer
             </button>
         </div>
 
         <!-- Loading Spinner -->
-        <div id="loading" class="hidden mt-6 text-center p-4 bg-indigo-50 rounded-xl">
-            <p class="text-indigo-600 font-bold animate-pulse">⏳ AI is analyzing your response... Please wait.</p>
+        <div id="loading" class="hidden mt-6 text-center p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800">
+            <p class="text-indigo-600 dark:text-indigo-400 font-bold animate-pulse">⏳ AI is analyzing your response... Please wait.</p>
         </div>
 
         <!-- Results Section -->
-        <div id="resultBox" class="hidden mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <div id="resultBox" class="hidden mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 shadow-sm">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
                 📊 Evaluation Result
             </h2>
             <div class="flex items-center space-x-4 mb-4">
                 <div class="w-20 h-20 rounded-full bg-green-500 text-white flex items-center justify-center text-3xl font-extrabold shadow-inner" id="scoreDisplay">
                     0
                 </div>
-                <span class="text-xl font-bold text-gray-700">Out of 10</span>
+                <span class="text-xl font-bold text-gray-700 dark:text-gray-300">Out of 10</span>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-                <h3 class="font-bold text-gray-800 mb-1">Feedback:</h3>
-                <p id="feedbackDisplay" class="text-gray-700 leading-relaxed"></p>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-1">Feedback:</h3>
+                <p id="feedbackDisplay" class="text-gray-700 dark:text-gray-300 leading-relaxed"></p>
             </div>
         </div>
         
         <!-- Error Section -->
-        <div id="errorBox" class="hidden mt-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 font-semibold">
+        <div id="errorBox" class="hidden mt-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 font-semibold">
         </div>
     </div>
 
     <script>
+        // --- Dark Mode Logic ---
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                themeToggle.innerHTML = '☀️ Light';
+            } else {
+                themeToggle.innerHTML = '🌙 Dark';
+            }
+        });
+
+        // --- Speech Recognition Logic (Mic) ---
+        const micBtn = document.getElementById('micBtn');
+        const micText = document.getElementById('micText');
+        const transcriptBox = document.getElementById('transcript');
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            let isRecording = false;
+
+            micBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    recognition.start();
+                    micText.innerText = 'Stop Recording...';
+                    micBtn.classList.remove('text-indigo-700', 'dark:text-indigo-300');
+                    micBtn.classList.add('text-red-600', 'animate-pulse');
+                    isRecording = true;
+                } else {
+                    recognition.stop();
+                    micText.innerText = 'Start Speaking';
+                    micBtn.classList.remove('text-red-600', 'animate-pulse');
+                    micBtn.classList.add('text-indigo-700', 'dark:text-indigo-300');
+                    isRecording = false;
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const currentTranscript = event.results[event.results.length - 1][0].transcript;
+                // Add a space if there's already text in the box
+                transcriptBox.value += (transcriptBox.value ? ' ' : '') + currentTranscript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Mic error:", event.error);
+                recognition.stop();
+                micText.innerText = 'Start Speaking';
+                micBtn.classList.remove('text-red-600', 'animate-pulse');
+                micBtn.classList.add('text-indigo-700', 'dark:text-indigo-300');
+                isRecording = false;
+                alert("Mic error: " + event.error + ". Make sure you gave browser permission.");
+            };
+        } else {
+            micBtn.style.display = 'none'; // Hide mic if browser doesn't support it
+        }
+
+        // --- Evaluation API Logic ---
         document.getElementById("evaluateBtn").addEventListener("click", async () => {
             const topic = document.getElementById("topic").value.trim();
-            const transcript = document.getElementById("transcript").value.trim();
+            const transcript = transcriptBox.value.trim();
             
             if (!topic || !transcript) {
                 alert("Bhai, Topic aur Answer dono field bharna zaroori hai!");
                 return;
             }
 
-            // UI Update: Show loading state
             const btn = document.getElementById("evaluateBtn");
             btn.disabled = true;
             btn.innerText = "Evaluating...";
@@ -80,14 +157,12 @@
             document.getElementById("errorBox").classList.add("hidden");
 
             try {
-                // EXACT NEW API URL
+                // Teri exact Modal URL
                 const apiUrl = "https://unknown5112--interview-coach-v2-fastapi-app.us-east.modal.run/api/evaluate";
                 
                 const response = await fetch(apiUrl, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ topic, transcript })
                 });
 
@@ -97,7 +172,6 @@
                     throw new Error(data.detail || "Server error occurred.");
                 }
 
-                // Show Results
                 document.getElementById("scoreDisplay").innerText = data.evaluation.score;
                 document.getElementById("feedbackDisplay").innerText = data.evaluation.feedback;
                 document.getElementById("resultBox").classList.remove("hidden");
@@ -105,7 +179,6 @@
                 document.getElementById("errorBox").innerText = "❌ Error: " + error.message;
                 document.getElementById("errorBox").classList.remove("hidden");
             } finally {
-                // Reset UI
                 btn.disabled = false;
                 btn.innerText = "Evaluate My Answer";
                 btn.classList.remove("opacity-60", "cursor-not-allowed");

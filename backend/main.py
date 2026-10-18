@@ -64,7 +64,7 @@ def evaluate_with_groq(topic: str, transcript: str):
     }
 
     payload = {
-        "model": "llama-3.1-8b-instant",
+        "model": "openai/gpt-oss-20b",
         "messages": [
             {"role": "system", "content": "You always respond in valid JSON format."},
             {"role": "user", "content": prompt}
