@@ -1,36 +1,26 @@
-# 🚀 AI Interview Coach
+# 🚀 AI Interview Coach (Full-Stack SaaS)
 
-An AI-powered mock interview evaluator designed to help candidates practice their communication skills and technical answers. The application analyzes a user's transcript against a specific interview topic and provides an instant score (out of 10) along with crisp, constructive feedback.
+A production-ready AI Interview Evaluator built to analyze candidate responses with real-world strictness. It scores answers in granular 0.5 increments and provides constructive feedback based on technical depth.
 
-## 🌟 Features
-* **Instant AI Evaluation:** Get immediate grading and personalized feedback on your interview answers.
-* **Serverless Architecture:** Backend powered by Modal for fast, scalable, and zero-idle-cost execution.
-* **Real-time Database:** All interview transcripts, topics, and scores are automatically logged in Supabase.
-* **Modern UI/UX:** Clean, responsive, and intuitive interface built with Tailwind CSS.
+## 🔗 Live Demo
+https://ai-interview-evaluator-frontend.vercel.app/
 
-## 💻 Tech Stack
-* **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (Hosted on **Vercel**)
-* **Backend:** Python, FastAPI (Serverless deployment via **Modal**)
-* **AI Engine:** Groq API (`gpt-oss-20b` model) for lightning-fast inference
-* **Database:** **Supabase** (PostgreSQL)
+## ✨ Features
+*   **Granular AI Evaluation**: Uses strict system prompting to evaluate answers accurately (e.g., 7.5, 8.5) instead of generic whole numbers.
+*   **Enterprise-Grade Auth**: Google OAuth and Email/Password authentication with email verification and password recovery, powered by Supabase.
+*   **Secure Multi-Tenant Dashboard**: Users can track their own past interview scores securely without data leaks.
+*   **Serverless Architecture**: FastAPI backend deployed seamlessly on Modal for high-performance AI inference via Groq.
+*   **Modern UI/UX**: Fully responsive, dark-mode enabled interface built with Tailwind CSS.
 
-## 🏗️ Architecture Flow
-1. User submits an interview topic and their answer transcript via the Vercel-hosted frontend.
-2. An HTTP POST request is sent to the FastAPI endpoint hosted on Modal.
-3. The backend securely retrieves the Groq API key and forwards the prompt to the AI model.
-4. The AI evaluates the response, returning a structured JSON containing a score and feedback.
-5. The backend asynchronously logs the evaluation data into the Supabase `mock_interviews` table.
-6. The frontend displays the result to the user.
+## 🛠️ Tech Stack
+*   **Frontend**: HTML5, Vanilla JavaScript, Tailwind CSS
+*   **Backend**: Python, FastAPI, Modal (Serverless Deployment)
+*   **Database & Auth**: Supabase (PostgreSQL)
+*   **AI Engine**: Groq API (gpt-oss-20b)
 
-## 🚀 Local Setup & Deployment
-
-### Prerequisites
-* Python 3.9+
-* Modal Account & CLI installed
-* Supabase Account
-* Groq API Key
-
-### Backend Deployment
-1. Install dependencies:
-   ```bash
-   pip install modal fastapi supabase requests pydantic
+## 💡 What I Learned
+As a 1st-year Computer Science (AI & ML) student, this project helped me transition from basic web development to building real-world architectures. Key learnings include:
+1. Handling secure API keys in cloud environments.
+2. Managing relational database operations (Inserts, Selects, Filtering).
+3. Implementing row-level privacy logic for user-specific dashboards.
+4. Structuring and deploying a decoupled Frontend (Vercel) + Backend (Modal) system.
