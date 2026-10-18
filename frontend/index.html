@@ -28,7 +28,7 @@
                     👤 Log In / Sign Up
                 </button>
                 <button id="themeToggle" class="text-sm p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    🌙 Dark
+                    🌙
                 </button>
             </div>
         </div>
@@ -109,9 +109,9 @@
         themeToggle.addEventListener('click', () => {
             htmlElement.classList.toggle('dark');
             if (htmlElement.classList.contains('dark')) {
-                themeToggle.innerHTML = '☀️ Light';
+                themeToggle.innerHTML = '☀️';
             } else {
-                themeToggle.innerHTML = '🌙 Dark';
+                themeToggle.innerHTML = '🌙';
             }
         });
 
@@ -133,14 +133,15 @@
             mainApp.classList.remove('hidden');
         });
 
+        // Professional messages for end users
         viewRecordsBtn.addEventListener('click', () => {
-            alert("Please log in to view your past interview records.");
+            alert("Please log in to access your personal dashboard and view past interview records.");
             loginSection.classList.remove('hidden');
             mainApp.classList.add('hidden');
         });
 
         loginSubmitBtn.addEventListener('click', () => {
-            alert("Frontend UI is ready! Supabase Database authentication will be connected in the backend next.");
+            alert("Thank you for your interest! The user authentication and progress tracking features are currently in beta and will be rolling out soon. Please continue using Guest Mode.");
         });
 
         // --- Evaluation API Logic ---
@@ -163,7 +164,7 @@
             document.getElementById("errorBox").classList.add("hidden");
 
             try {
-                // Modal URL
+                // Modal API Endpoint
                 const apiUrl = "https://unknown5112--interview-coach-v2-fastapi-app.us-east.modal.run/api/evaluate";
                 
                 const response = await fetch(apiUrl, {
