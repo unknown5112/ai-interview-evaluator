@@ -1,24 +1,36 @@
-# 🎙️ AI Mock Interview & Speech Evaluator
+# 🚀 AI Interview Coach
 
-A highly performant, cloud-native mock interview platform designed to evaluate spoken responses and presentations in real-time using Generative AI. 
+An AI-powered mock interview evaluator designed to help candidates practice their communication skills and technical answers. The application analyzes a user's transcript against a specific interview topic and provides an instant score (out of 10) along with crisp, constructive feedback.
 
-## 🚀 Features
-- **Real-Time AI Evaluation:** Leverages Google's Gemini 3.8 Flash model to provide instant, constructive feedback and scoring out of 10.
-- **Serverless Architecture:** Backend powered by Modal and FastAPI, utilizing `min_containers=1` to bypass cold-starts and ensure zero-latency execution.
-- **Persistent Database:** Integrated with Supabase (PostgreSQL) to maintain a robust, real-time log of interview transcripts, scores, and AI feedback.
-- **Optimized UI:** Dark-mode, modern interface built with Tailwind CSS, featuring background server-warming ("Ninja Ping") for a seamless user experience.
+## 🌟 Features
+* **Instant AI Evaluation:** Get immediate grading and personalized feedback on your interview answers.
+* **Serverless Architecture:** Backend powered by Modal for fast, scalable, and zero-idle-cost execution.
+* **Real-time Database:** All interview transcripts, topics, and scores are automatically logged in Supabase.
+* **Modern UI/UX:** Clean, responsive, and intuitive interface built with Tailwind CSS.
 
 ## 💻 Tech Stack
-- **Frontend:** HTML5, Tailwind CSS, JavaScript
-- **Backend:** Python, FastAPI, Requests
-- **Cloud Infrastructure:** Modal (Serverless Cloud Deployments)
-- **Database:** Supabase (PostgreSQL)
-- **AI Engine:** Google Gemini API (3.8 Flash)
+* **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (Hosted on **Vercel**)
+* **Backend:** Python, FastAPI (Serverless deployment via **Modal**)
+* **AI Engine:** Groq API (`gpt-oss-20b` model) for lightning-fast inference
+* **Database:** **Supabase** (PostgreSQL)
 
-## 🛠️ Installation & Deployment
+## 🏗️ Architecture Flow
+1. User submits an interview topic and their answer transcript via the Vercel-hosted frontend.
+2. An HTTP POST request is sent to the FastAPI endpoint hosted on Modal.
+3. The backend securely retrieves the Groq API key and forwards the prompt to the AI model.
+4. The AI evaluates the response, returning a structured JSON containing a score and feedback.
+5. The backend asynchronously logs the evaluation data into the Supabase `mock_interviews` table.
+6. The frontend displays the result to the user.
 
-### 1. Cloud Deployment (Backend)
-Navigate to the `backend` directory and deploy the FastAPI backend to Modal's serverless infrastructure:
-```bash
-cd backend
-modal deploy main.py
+## 🚀 Local Setup & Deployment
+
+### Prerequisites
+* Python 3.9+
+* Modal Account & CLI installed
+* Supabase Account
+* Groq API Key
+
+### Backend Deployment
+1. Install dependencies:
+   ```bash
+   pip install modal fastapi supabase requests pydantic
