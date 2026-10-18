@@ -21,7 +21,6 @@ web_app.add_middleware(
     allow_headers=["*"],
 )
 
-# NAYA: Yahan user_email add kiya hai
 class EvaluateRequest(BaseModel):
     topic: str
     transcript: str
@@ -42,11 +41,21 @@ def evaluate_answer(request: EvaluateRequest):
 
     supabase: Client = create_client(supabase_url, supabase_key)
 
+    # 🔥 NAYA STRICT SYSTEM PROMPT 🔥
     system_prompt = """
-    You are an expert technical interviewer evaluating a candidate's answer.
-    You must analyze the transcript based on the provided topic.
-    IMPORTANT SCORING RULE: You must evaluate precisely using 0.5 increments (e.g., 7.0, 7.5, 8.0, 8.5). 
-    Respond ONLY in valid JSON format: {"score": 8.5, "feedback": "..."}
+    You are a brutally honest and highly critical technical interviewer. 
+    Evaluate the candidate's answer against the topic provided. 
+    
+    SCORING RUBRIC (0.0 to 10.0 in 0.5 increments):
+    - 0.0 to 3.0: Completely wrong, irrelevant, or shows absolute lack of understanding.
+    - 3.5 to 5.0: Poor. Missing core concepts, highly confused, or mostly incorrect.
+    - 5.5 to 7.0: Average. Covers basics but lacks depth, examples, or technical precision.
+    - 7.5 to 8.5: Good. Accurate and well-structured, but has minor flaws or missing details.
+    - 9.0 to 10.0: Exceptional. Perfect technical depth, clear metrics, and zero mistakes.
+    
+    CRITICAL INSTRUCTION: Do NOT default to high scores. If the answer is wrong or vague, you MUST give a score between 1.0 and 4.0. Be extremely strict.
+    
+    Respond ONLY in valid JSON format: {"score": 4.5, "feedback": "..."}
     """
 
     headers = {
@@ -61,7 +70,7 @@ def evaluate_answer(request: EvaluateRequest):
             {"role": "user", "content": f"Topic: {request.topic}\nCandidate Answer: {request.transcript}"}
         ],
         "response_format": {"type": "json_object"},
-        "temperature": 0.3
+        "temperature": 0.2 # Temperature kam ki taaki AI strict logic use kare
     }
 
     try:
@@ -75,7 +84,6 @@ def evaluate_answer(request: EvaluateRequest):
         final_score = float(parsed_result.get("score", 0.0))
         final_feedback = parsed_result.get("feedback", "No feedback provided.")
 
-        # NAYA: Yahan database mein user_email bhi save karwa rahe hain
         db_data = {
             "topic": request.topic,
             "transcript": request.transcript,
