@@ -1,113 +1,100 @@
-import os
-import json
-import requests
 import modal
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
+import os
+import requests
+import json
 from supabase import create_client, Client
 
-image = modal.Image.debian_slim().pip_install(
-    "fastapi", "supabase", "requests", "pydantic"
-)
+app = modal.App("interview-coach-v2-fastapi-app")
+image = modal.Image.debian_slim().pip_install("fastapi", "pydantic", "requests", "supabase")
 
-# Naya app name taaki purana cache bilkul use na ho
-app = modal.App("interview-coach-v2")
-
-web_app = FastAPI(title="AI Interview Evaluator V2")
+web_app = FastAPI()
 
 web_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["*"], 
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class InterviewRequest(BaseModel):
+# NAYA: Yahan user_email add kiya hai
+class EvaluateRequest(BaseModel):
     topic: str
     transcript: str
+    user_email: Optional[str] = "guest" 
 
-@web_app.get("/")
-def health_check():
-    groq_key = os.environ.get("GROQ_API_KEY", "")
-    return {
-        "status": "online",
-        "groq_key_loaded": bool(groq_key and groq_key.startswith("gsk_")),
-        "key_prefix": groq_key[:7] + "..." if groq_key else "MISSING"
-    }
+class EvaluationResponse(BaseModel):
+    score: float  
+    feedback: str
 
-def evaluate_with_groq(topic: str, transcript: str):
-    api_key = os.environ.get("GROQ_API_KEY", "").strip()
-    if not api_key:
-        raise Exception("GROQ_API_KEY is missing in Modal Secret 'coach-secrets'")
+@web_app.post("/api/evaluate")
+def evaluate_answer(request: EvaluateRequest):
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_KEY")
 
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    if not all([groq_api_key, supabase_url, supabase_key]):
+        raise HTTPException(status_code=500, detail="API keys missing.")
 
-    prompt = f"""
-    You are an expert HR Interviewer and Communication Coach.
-    Evaluate the following spoken response from a candidate.
+    supabase: Client = create_client(supabase_url, supabase_key)
 
-    Topic/Question: {topic}
-    Candidate's Transcript: {transcript}
-
-    Provide a valid JSON response with this exact structure:
-    {{
-        "score": 8,
-        "feedback": "A crisp 3-4 sentence constructive feedback highlighting strengths and areas for improvement."
-    }}
+    system_prompt = """
+    You are an expert technical interviewer evaluating a candidate's answer.
+    You must analyze the transcript based on the provided topic.
+    IMPORTANT SCORING RULE: You must evaluate precisely using 0.5 increments (e.g., 7.0, 7.5, 8.0, 8.5). 
+    Respond ONLY in valid JSON format: {"score": 8.5, "feedback": "..."}
     """
 
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {groq_api_key}",
         "Content-Type": "application/json"
     }
 
-    payload = {
-        "model": "openai/gpt-oss-20b",
+    data = {
+        "model": "gpt-oss-20b", 
         "messages": [
-            {"role": "system", "content": "You always respond in valid JSON format."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Topic: {request.topic}\nCandidate Answer: {request.transcript}"}
         ],
-        "response_format": {"type": "json_object"}
+        "response_format": {"type": "json_object"},
+        "temperature": 0.3
     }
 
-    resp = requests.post(url, json=payload, headers=headers, timeout=20)
-    if resp.status_code != 200:
-        raise Exception(f"Groq API Error: {resp.text}")
-
-    data = resp.json()
-    return json.loads(data["choices"][0]["message"]["content"])
-
-@web_app.post("/api/evaluate")
-def evaluate_response(req: InterviewRequest):
     try:
-        evaluation = evaluate_with_groq(req.topic, req.transcript)
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+        response.raise_for_status()
         
-        # Database logic inside nested try-except (failsafe)
-        try:
-            supabase_url = os.environ.get("SUPABASE_URL", "").strip()
-            supabase_key = os.environ.get("SUPABASE_KEY", "").strip()
-            if supabase_url and supabase_key:
-                supabase: Client = create_client(supabase_url, supabase_key)
-                supabase.table("mock_interviews").insert({
-                    "topic": req.topic,
-                    "transcript": req.transcript,
-                    "score": evaluation.get("score", 0),
-                    "feedback": evaluation.get("feedback", "")
-                }).execute()
-        except Exception as db_err:
-            print(f"Supabase Failsafe: {str(db_err)}")
+        response_json = response.json()
+        ai_content = response_json["choices"][0]["message"]["content"]
+        
+        parsed_result = json.loads(ai_content)
+        final_score = float(parsed_result.get("score", 0.0))
+        final_feedback = parsed_result.get("feedback", "No feedback provided.")
 
+        # NAYA: Yahan database mein user_email bhi save karwa rahe hain
+        db_data = {
+            "topic": request.topic,
+            "transcript": request.transcript,
+            "score": final_score,
+            "feedback": final_feedback,
+            "user_email": request.user_email
+        }
+        supabase.table("mock_interviews").insert(db_data).execute()
+        
         return {
-            "status": "success",
-            "topic": req.topic,
-            "evaluation": evaluation
+            "evaluation": {
+                "score": final_score,
+                "feedback": final_feedback
+            }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
-@app.function(image=image, secrets=[modal.Secret.from_name("coach-secrets")], min_containers=1)
+@app.function(image=image, secrets=[modal.Secret.from_name("coach-secrets")])
 @modal.asgi_app()
 def fastapi_app():
     return web_app
