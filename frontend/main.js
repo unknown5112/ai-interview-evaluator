@@ -12,12 +12,13 @@ themeToggleBtn.addEventListener('click', () => {
 });
 
 // --- 2. SUPABASE AUTH SETUP ---
-// YAHAN APNI ASLI DETAILS DAALNA
+// YAHAN APNI ASLI DETAILS DAALNA MAT BHOOLNA
 const SUPABASE_URL = 'https://zkzfelzbcskmzgyfynjz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TEvCsRbd9Zid9wYsbJDRSA_0Bw9qdhd';
 const BACKEND_URL = 'https://ai-interview-evaluator-hgjg.onrender.com'; // Tera render wala link
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// FIX 1: Changed variable name to supabaseClient to prevent CDN global scope crash
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUserEmail = null;
 
@@ -28,8 +29,8 @@ const emailDisplay = document.getElementById('user-email-display');
 const pastScoresContainer = document.getElementById('past-scores-container');
 const scoresList = document.getElementById('scores-list');
 
-// Listen for Login/Logout state changes
-supabase.auth.onAuthStateChange((event, session) => {
+// Auth Listener
+supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session) {
         currentUserEmail = session.user.email;
         authSection.classList.add('hidden');
@@ -45,42 +46,50 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
 });
 
-// Login / Sign Up Logic (Email & Password)
+// Email/Password Login (FIX 2: Better Error Handling)
 document.getElementById('login-btn').addEventListener('click', async () => {
     const email = document.getElementById('email-input').value;
     const password = document.getElementById('password-input').value;
-    
     if(!email || !password) return alert("Please enter both email and password.");
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-        // Agar account nahi hai, toh sign up try karo
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) {
-            alert("Error: " + signUpError.message);
+    // Pehle login try karo
+    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+    
+    if (signInError) {
+        // Agar password galat hai toh directly error dikhao
+        if (signInError.message.includes("Invalid login credentials")) {
+            alert("Wrong email or password! Please try again.");
         } else {
-            alert("Signup successful! Please check your email to verify.");
+            // Agar credentials ka issue nahi hai, matlab account nahi hai, toh Sign Up karo
+            const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+            if (signUpError) {
+                alert("Error: " + signUpError.message);
+            } else {
+                alert("Signup successful! Please check your email to verify your account.");
+            }
         }
     }
 });
 
-// Google OAuth Login
+// Google Login
 document.getElementById('google-login-btn').addEventListener('click', async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
     if (error) alert("Google Login Error: " + error.message);
 });
 
-// Logout Logic
+// Logout
 document.getElementById('logout-btn').addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     scoresList.innerHTML = ''; 
 });
 
-// --- 3. FETCH PAST SCORES LOGIC ---
+// --- 3. FETCH PAST SCORES ---
 async function fetchPastScores(email) {
     try {
         scoresList.innerHTML = '<p class="text-indigo-500 animate-pulse">Loading your previous interview scores...</p>';
-        const response = await fetch(`${BACKEND_URL}/api/scores/${email}`);
+        
+        // FIX 3: Added encodeURIComponent to prevent URL routing errors with '@'
+        const response = await fetch(`${BACKEND_URL}/api/scores/${encodeURIComponent(email)}`);
         
         if (!response.ok) throw new Error("Failed to fetch scores");
         
@@ -107,14 +116,13 @@ async function fetchPastScores(email) {
     }
 }
 
-// --- 4. MAIN EVALUATION LOGIC ---
+// --- 4. MAIN EVALUATION ---
 document.getElementById('evaluate-btn').addEventListener('click', async () => {
     const topic = document.getElementById('topic').value;
     const transcript = document.getElementById('transcript').value;
     
     if (!topic || !transcript) return alert("Please enter both topic and answer!");
 
-    // UI Updates during loading
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('result-section').classList.add('hidden');
     document.getElementById('evaluate-btn').disabled = true;
@@ -127,7 +135,7 @@ document.getElementById('evaluate-btn').addEventListener('click', async () => {
             body: JSON.stringify({
                 topic: topic,
                 transcript: transcript,
-                user_email: currentUserEmail || "anonymous@user.com" // Logs to anonymous if not logged in
+                user_email: currentUserEmail || "anonymous@user.com"
             })
         });
 
@@ -135,12 +143,10 @@ document.getElementById('evaluate-btn').addEventListener('click', async () => {
 
         const data = await response.json();
         
-        // Show Results
         document.getElementById('score').innerText = data.evaluation.score;
         document.getElementById('feedback').innerText = data.evaluation.feedback;
         document.getElementById('result-section').classList.remove('hidden');
 
-        // Agar user logged in hai, toh past scores ki list dobara refresh kar do
         if (currentUserEmail) {
             fetchPastScores(currentUserEmail);
         }
@@ -149,7 +155,6 @@ document.getElementById('evaluate-btn').addEventListener('click', async () => {
         alert("An error occurred during evaluation. Please check console.");
         console.error(error);
     } finally {
-        // Reset UI
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('evaluate-btn').disabled = false;
         document.getElementById('evaluate-btn').classList.remove('opacity-50', 'cursor-not-allowed');

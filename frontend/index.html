@@ -11,10 +11,8 @@
     <!-- Tailwind Config for Dark Mode -->
     <script>
         tailwind.config = {
-            darkMode: 'class', // Manual switch ke liye
-            theme: {
-                extend: {}
-            }
+            darkMode: 'class', 
+            theme: { extend: {} }
         }
     </script>
 
@@ -34,7 +32,7 @@
                     🌓
                 </button>
                 
-                <!-- Auth Section (Visible when logged out) -->
+                <!-- Auth Section -->
                 <div id="auth-section" class="flex flex-wrap items-center gap-2">
                     <input type="email" id="email-input" placeholder="Email" class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-36 md:w-48 text-sm">
                     <input type="password" id="password-input" placeholder="Password" class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-36 md:w-48 text-sm">
@@ -43,7 +41,7 @@
                     <button id="google-login-btn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm shadow-sm">Google OAuth</button>
                 </div>
                 
-                <!-- User Profile Section (Visible when logged in) -->
+                <!-- User Profile Section -->
                 <div id="user-section" class="hidden flex items-center gap-4">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -60,32 +58,26 @@
         
         <!-- Evaluator Card -->
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-gray-200 dark:border-slate-700">
-            
             <div class="space-y-5">
-                <!-- Topic Input -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">Interview Topic</label>
                     <input type="text" id="topic" placeholder="e.g. C++ Pointers and Dynamic Memory" class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
                 </div>
-
-                <!-- Answer Input -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">Your Answer</label>
                     <textarea id="transcript" rows="6" placeholder="Type your full answer here..." class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm resize-y"></textarea>
                 </div>
-
-                <!-- Evaluate Button -->
                 <button id="evaluate-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors text-lg shadow-md">
                     Evaluate Answer
                 </button>
             </div>
 
-            <!-- Loading Spinner / Text -->
+            <!-- Loading Spinner -->
             <div id="loading" class="hidden mt-6 text-center">
                 <p class="text-indigo-500 dark:text-indigo-400 font-semibold animate-pulse">Initiating strict evaluation... Connecting to Groq AI.</p>
             </div>
 
-            <!-- Final Result Section -->
+            <!-- Result Section -->
             <div id="result-section" class="hidden mt-8 p-6 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-inner">
                 <h3 class="text-2xl font-bold mb-3 text-indigo-600 dark:text-indigo-400">Evaluation Result</h3>
                 <p class="text-lg font-semibold mb-4">Score: <span id="score" class="text-green-500 font-extrabold text-3xl"></span><span class="text-gray-500 text-2xl">/10.0</span></p>
@@ -94,18 +86,16 @@
             </div>
         </div>
 
-        <!-- Past Scores Section (Only shows when logged in) -->
+        <!-- Past Scores Section -->
         <div id="past-scores-container" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-slate-700">
             <h2 class="text-2xl font-bold mb-6 border-b pb-2 dark:border-slate-700">Your Past Interviews</h2>
-            <!-- Dynamically populated list -->
             <div id="scores-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Cards will be injected here via main.js -->
+                <!-- Cards injected here -->
             </div>
         </div>
 
     </main>
 
-    <!-- Connect external JS -->
     <script src="main.js"></script>
 </body>
 </html>
