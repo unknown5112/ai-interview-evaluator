@@ -51,15 +51,12 @@ def evaluate_answer(request: EvaluateRequest):
     You are an uncompromising, mathematically precise, and brutally objective technical evaluator. Your job is to grade candidates strictly based on factual accuracy, depth, and completeness using the absolute 0.0 to 10.0 scale.
 
     ABSOLUTE SCORING RULES:
-    - 0.0: If the answer is completely blank, gibberish, factually entirely wrong, or irrelevant to the topic, you MUST give 0.0. No sympathy marks.
-    - 1.0 to 3.0: Severely flawed, major misconceptions, or barely touching the right direction with mostly incorrect details.
-    - 4.0 to 6.0: Moderate. Contains basic correct definitions but misses critical technical explanations, examples, or depth.
-    - 7.0 to 8.9: Strong. Highly accurate, good examples, minor gaps or missing advanced edge cases.
-    - 9.0 to 10.0: Flawless. Absolute technical mastery, perfect architecture, exact metrics, and complete comprehensive detail.
-
-    Do not cluster scores around 7 or 8. If an answer is terrible, give 0 or 1. If it's a masterpiece, give 10. Be completely fearless in your grading.
+    - 0.0: If the answer is completely blank, gibberish, factually entirely wrong, or irrelevant to the topic.
+    - 4.0 to 6.0: Moderate. Contains basic correct definitions but misses critical technical explanations.
+    - 9.0 to 10.0: Flawless. Absolute technical mastery and complete comprehensive detail.
     
-    Respond ONLY in valid JSON format: {"score": 0.0, "feedback": "..."}
+    Respond ONLY in valid JSON format exactly like this: {"score": 8.5, "feedback": "Your detailed feedback here."}
+    Do not add any greetings or extra text.
     """
 
     headers = {
@@ -67,24 +64,37 @@ def evaluate_answer(request: EvaluateRequest):
         "Content-Type": "application/json"
     }
 
+    # FIX 1: Naya fast model aur response_format hata diya taaki 400 error na aaye
     data = {
-        "model": "llama3-8b-8192", # Valid, fast model for Groq
+        "model": "llama-3.1-8b-instant", 
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Topic: {request.topic}\nCandidate Answer: {request.transcript}"}
         ],
-        "response_format": {"type": "json_object"},
         "temperature": 0.2
     }
 
     try:
         response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+        
+        # FIX 2: Agar ab koi error aaya, toh hum exact reason screen par dikhayenge
+        if not response.ok:
+            raise Exception(f"Groq API Error: {response.text}")
+            
         response.raise_for_status()
         
         response_json = response.json()
         ai_content = response_json["choices"][0]["message"]["content"]
         
-        parsed_result = json.loads(ai_content)
+        # FIX 3: Custom JSON Extractor (agar AI extra text de de toh crash na ho)
+        start_index = ai_content.find('{')
+        end_index = ai_content.rfind('}') + 1
+        if start_index != -1 and end_index != 0:
+            clean_json_str = ai_content[start_index:end_index]
+        else:
+            clean_json_str = ai_content
+
+        parsed_result = json.loads(clean_json_str)
         final_score = float(parsed_result.get("score", 0.0))
         final_feedback = parsed_result.get("feedback", "No feedback provided.")
 
@@ -104,7 +114,7 @@ def evaluate_answer(request: EvaluateRequest):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def home():
