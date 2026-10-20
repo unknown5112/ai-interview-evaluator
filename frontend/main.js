@@ -17,7 +17,6 @@ const SUPABASE_URL = 'https://zkzfelzbcskmzgyfynjz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TEvCsRbd9Zid9wYsbJDRSA_0Bw9qdhd';
 const BACKEND_URL = 'https://ai-interview-evaluator-hgjg.onrender.com'; // Tera render wala link
 
-// FIX 1: Changed variable name to supabaseClient to prevent CDN global scope crash
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUserEmail = null;
@@ -29,8 +28,22 @@ const emailDisplay = document.getElementById('user-email-display');
 const pastScoresContainer = document.getElementById('past-scores-container');
 const scoresList = document.getElementById('scores-list');
 
-// Auth Listener
-supabaseClient.auth.onAuthStateChange((event, session) => {
+// Auth Listener (with Password Recovery Event added)
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    
+    // NEW: Password Recovery Flow (Jab user email ki link par click karega)
+    if (event === 'PASSWORD_RECOVERY') {
+        const newPassword = prompt("Password Reset Request: Please enter your new password:");
+        if (newPassword) {
+            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) {
+                alert("Error updating password: " + error.message);
+            } else {
+                alert("Password updated successfully! You can now use your new password.");
+            }
+        }
+    }
+
     if (session) {
         currentUserEmail = session.user.email;
         authSection.classList.add('hidden');
@@ -46,21 +59,18 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     }
 });
 
-// Email/Password Login (FIX 2: Better Error Handling)
+// Email/Password Login
 document.getElementById('login-btn').addEventListener('click', async () => {
     const email = document.getElementById('email-input').value;
     const password = document.getElementById('password-input').value;
     if(!email || !password) return alert("Please enter both email and password.");
 
-    // Pehle login try karo
     const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
     
     if (signInError) {
-        // Agar password galat hai toh directly error dikhao
         if (signInError.message.includes("Invalid login credentials")) {
             alert("Wrong email or password! Please try again.");
         } else {
-            // Agar credentials ka issue nahi hai, matlab account nahi hai, toh Sign Up karo
             const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
             if (signUpError) {
                 alert("Error: " + signUpError.message);
@@ -68,6 +78,25 @@ document.getElementById('login-btn').addEventListener('click', async () => {
                 alert("Signup successful! Please check your email to verify your account.");
             }
         }
+    }
+});
+
+// NEW: Forgot Password Logic
+document.getElementById('forgot-btn').addEventListener('click', async () => {
+    const email = document.getElementById('email-input').value;
+    if (!email) {
+        return alert("Please enter your email address in the Email box first, then click 'Forgot Password'.");
+    }
+
+    // URL jahan password reset email user ko wapas bhejegi (Tera Vercel site URL)
+    const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin, 
+    });
+
+    if (error) {
+        alert("Error: " + error.message);
+    } else {
+        alert("Password reset link has been sent! Please check your email inbox/spam folder.");
     }
 });
 
@@ -87,10 +116,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 async function fetchPastScores(email) {
     try {
         scoresList.innerHTML = '<p class="text-indigo-500 animate-pulse">Loading your previous interview scores...</p>';
-        
-        // FIX 3: Added encodeURIComponent to prevent URL routing errors with '@'
         const response = await fetch(`${BACKEND_URL}/api/scores/${encodeURIComponent(email)}`);
-        
         if (!response.ok) throw new Error("Failed to fetch scores");
         
         const result = await response.json();
