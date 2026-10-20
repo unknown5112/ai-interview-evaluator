@@ -65,14 +65,18 @@ def evaluate_answer(request: EvaluateRequest):
     }
 
     # FIX 1: Naya fast model aur response_format hata diya taaki 400 error na aaye
+    # Baki code upar ka same rahega...
+
     data = {
-        "model": "llama-3.1-8b-instant", 
+        "model": "openai/gpt-oss-20b",  # YAHAN EXACT LIST WALA NAAM DAALNA HAI
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Topic: {request.topic}\nCandidate Answer: {request.transcript}"}
         ],
         "temperature": 0.2
     }
+
+    # Niche ka try...except block bhi same rahega
 
     try:
         response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
