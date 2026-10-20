@@ -14,7 +14,7 @@ https://ai-interview-evaluator-frontend.vercel.app/
 
 ## 🛠️ Tech Stack
 *   **Frontend**: HTML5, Vanilla JavaScript, Tailwind CSS
-*   **Backend**: Python, FastAPI, Modal (Serverless Deployment)
+*   **Backend**: Python, FastAPI, Render (Serverless Deployment)
 *   **Database & Auth**: Supabase (PostgreSQL)
 *   **AI Engine**: Groq API (gpt-oss-20b)
 
@@ -23,4 +23,4 @@ As a 1st-year Computer Science (AI & ML) student, this project helped me transit
 1. Handling secure API keys in cloud environments.
 2. Managing relational database operations (Inserts, Selects, Filtering).
 3. Implementing row-level privacy logic for user-specific dashboards.
-4. Structuring and deploying a decoupled Frontend (Vercel) + Backend (Modal) system.
+4. Structuring and deploying a decoupled Frontend (Vercel) + Backend (Render) system.
