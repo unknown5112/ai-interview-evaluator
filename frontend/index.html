@@ -4,43 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Interview Coach</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
-    </style>
+
+    <!-- Tailwind Config for Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Manual switch ke liye
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="max-w-2xl w-full bg-slate-800 rounded-xl p-8 shadow-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-400">AI Interview Coach 🚀</h1>
-            <span class="text-sm font-medium text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full">Guest Mode</span>
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen">
+
+    <!-- Top Navbar -->
+    <nav class="bg-white dark:bg-slate-800 shadow-md p-4 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">AI Interview Coach</h1>
+            
+            <div class="flex flex-wrap justify-center items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="p-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-lg text-xl transition" title="Switch Theme">
+                    🌓
+                </button>
+                
+                <!-- Auth Section (Visible when logged out) -->
+                <div id="auth-section" class="flex flex-wrap items-center gap-2">
+                    <input type="email" id="email-input" placeholder="Email" class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-36 md:w-48 text-sm">
+                    <input type="password" id="password-input" placeholder="Password" class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-36 md:w-48 text-sm">
+                    
+                    <button id="login-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition text-sm shadow-sm">Login / Sign Up</button>
+                    <button id="google-login-btn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm shadow-sm">Google OAuth</button>
+                </div>
+                
+                <!-- User Profile Section (Visible when logged in) -->
+                <div id="user-section" class="hidden flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span id="user-email-display" class="font-medium text-sm md:text-base text-gray-700 dark:text-gray-300"></span>
+                    </div>
+                    <button id="logout-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition text-sm">Logout</button>
+                </div>
+            </div>
         </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto mt-8 p-4">
         
-        <div class="space-y-5">
-            <div>
-                <label class="block text-sm font-medium mb-2 text-slate-300">Interview Topic</label>
-                <input type="text" id="topicInput" placeholder="e.g., Python Generators, System Design, React" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
-            </div>
+        <!-- Evaluator Card -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-gray-200 dark:border-slate-700">
             
-            <div>
-                <label class="block text-sm font-medium mb-2 text-slate-300">Your Answer</label>
-                <textarea id="answerInput" rows="5" placeholder="Type your detailed technical answer here..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"></textarea>
+            <div class="space-y-5">
+                <!-- Topic Input -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Interview Topic</label>
+                    <input type="text" id="topic" placeholder="e.g. C++ Pointers and Dynamic Memory" class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                </div>
+
+                <!-- Answer Input -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Your Answer</label>
+                    <textarea id="transcript" rows="6" placeholder="Type your full answer here..." class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm resize-y"></textarea>
+                </div>
+
+                <!-- Evaluate Button -->
+                <button id="evaluate-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors text-lg shadow-md">
+                    Evaluate Answer
+                </button>
             </div>
-            
-            <button id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
-                Evaluate Answer
-            </button>
+
+            <!-- Loading Spinner / Text -->
+            <div id="loading" class="hidden mt-6 text-center">
+                <p class="text-indigo-500 dark:text-indigo-400 font-semibold animate-pulse">Initiating strict evaluation... Connecting to Groq AI.</p>
+            </div>
+
+            <!-- Final Result Section -->
+            <div id="result-section" class="hidden mt-8 p-6 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-inner">
+                <h3 class="text-2xl font-bold mb-3 text-indigo-600 dark:text-indigo-400">Evaluation Result</h3>
+                <p class="text-lg font-semibold mb-4">Score: <span id="score" class="text-green-500 font-extrabold text-3xl"></span><span class="text-gray-500 text-2xl">/10.0</span></p>
+                <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">Detailed Feedback:</h4>
+                <p id="feedback" class="text-gray-700 dark:text-gray-300 leading-relaxed"></p>
+            </div>
         </div>
 
-        <!-- Result Section (Hidden by default) -->
-        <div id="resultSection" class="mt-8 hidden bg-slate-900 p-6 rounded-lg border border-slate-700">
-            <h2 class="text-xl font-bold text-indigo-400 mb-2">Evaluation Result</h2>
-            <p class="text-lg font-semibold mb-3">Score: <span id="scoreDisplay" class="text-emerald-400 text-2xl"></span><span class="text-slate-400">/10.0</span></p>
-            <p class="text-sm font-bold text-slate-400 mb-1">Detailed Feedback:</p>
-            <p id="feedbackDisplay" class="text-slate-300 whitespace-pre-line leading-relaxed"></p>
+        <!-- Past Scores Section (Only shows when logged in) -->
+        <div id="past-scores-container" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-slate-700">
+            <h2 class="text-2xl font-bold mb-6 border-b pb-2 dark:border-slate-700">Your Past Interviews</h2>
+            <!-- Dynamically populated list -->
+            <div id="scores-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- Cards will be injected here via main.js -->
+            </div>
         </div>
-    </div>
 
+    </main>
+
+    <!-- Connect external JS -->
     <script src="main.js"></script>
 </body>
 </html>
