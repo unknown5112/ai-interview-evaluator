@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pydantic
+# Agar tu Gemini AI use kar raha hai toh niche wali line bhi zaroor rakhna:
+google-generativeai 
+python-dotenv
