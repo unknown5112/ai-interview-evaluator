@@ -33,7 +33,7 @@ class EvaluateRequest(BaseModel):
     user_email: Optional[str] = "guest" 
 
 class EvaluationResponse(BaseModel):
-    score: float  
+    score: int  
     feedback: str
 
 @app.post("/api/evaluate")
@@ -99,13 +99,13 @@ def evaluate_answer(request: EvaluateRequest):
             clean_json_str = ai_content
 
         parsed_result = json.loads(clean_json_str)
-        final_score = float(parsed_result.get("score", 0.0))
+        final_score = int(parsed_result.get("score", 0.0))
         final_feedback = parsed_result.get("feedback", "No feedback provided.")
 
         db_data = {
             "topic": request.topic,
             "transcript": request.transcript,
-            "score": final_score,
+            "score": int(final_score),
             "feedback": final_feedback,
             "user_email": request.user_email
         }
