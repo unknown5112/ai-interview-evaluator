@@ -1,55 +1,46 @@
-// Tera naya live Render Backend Link
-const BACKEND_URL = "https://ai-interview-evaluator-hgjg.onrender.com/api/evaluate";
-
-async function evaluateInterview(userTopic, userAnswer) {
-    // 1. Loading state (UI mein dikhane ke liye)
-    console.log("Evaluating... Requesting Render Server...");
-    
-    try {
-        // 2. Backend ko request bhejna
-        const response = await fetch(BACKEND_URL, {
-            method: "POST",
-            headers: {
-                // Yahan sirf Content-Type jayega, CORS error se bachne ke liye extra headers mat daalna
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({
-                topic: userTopic,
-                transcript: userAnswer, // BACKEND KO EXACT YAHI NAAM CHAHIYE
-                user_email: "guest"
-            })
-        });
-
-        // 3. Agar server ne request reject kardi (jaise 400 ya 500 error)
-        if (!response.ok) {
-            throw new Error(`Server ne Error ${response.status} diya hai.`);
-        }
-
-        // 4. Backend se AI ka result nikalna
-        const result = await response.json();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-slate-800 rounded-xl p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-400">AI Interview Coach 🚀</h1>
+            <span class="text-sm font-medium text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full">Guest Mode</span>
+        </div>
         
-        console.log("AI Result Aa Gaya:", result);
-        
-        // 5. Result ko apni website par show karna (yahan document.getElementById laga kar result update kar lena)
-        const finalScore = result.evaluation.score;
-        const finalFeedback = result.evaluation.feedback;
-        
-        alert(`Your Score: ${finalScore}/10 \n\nFeedback: ${finalFeedback}`);
-        
-        return result;
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-300">Interview Topic</label>
+                <input type="text" id="topicInput" placeholder="e.g., Python Generators, System Design, React" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-300">Your Answer</label>
+                <textarea id="answerInput" rows="5" placeholder="Type your detailed technical answer here..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"></textarea>
+            </div>
+            
+            <button id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+                Evaluate Answer
+            </button>
+        </div>
 
-    } catch (error) {
-        // 6. Agar 'Failed to fetch' ya koi aur error aata hai
-        console.error("Fetch Error Detail:", error);
-        alert("Server se connect nahi ho paya. Ek baar dobara try kar bhai!");
-    }
-}
+        <!-- Result Section (Hidden by default) -->
+        <div id="resultSection" class="mt-8 hidden bg-slate-900 p-6 rounded-lg border border-slate-700">
+            <h2 class="text-xl font-bold text-indigo-400 mb-2">Evaluation Result</h2>
+            <p class="text-lg font-semibold mb-3">Score: <span id="scoreDisplay" class="text-emerald-400 text-2xl"></span><span class="text-slate-400">/10.0</span></p>
+            <p class="text-sm font-bold text-slate-400 mb-1">Detailed Feedback:</p>
+            <p id="feedbackDisplay" class="text-slate-300 whitespace-pre-line leading-relaxed"></p>
+        </div>
+    </div>
 
-// Button click par isko aise call karna hai (Example)
-/*
-document.getElementById("submitBtn").addEventListener("click", () => {
-    const topicText = document.getElementById("topicInput").value;
-    const answerText = document.getElementById("answerInput").value;
-    evaluateInterview(topicText, answerText);
-});
-*/
+    <script src="main.js"></script>
+</body>
+</html>
